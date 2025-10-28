@@ -1,41 +1,39 @@
 // src/lib/api.ts
-export const BASE_URL = "";
 
-function getToken(): string | null {
-  try {
-    return localStorage.getItem("p360_token");
-  } catch {
-    return null;
-  }
-}
+// Decide base URL for API calls.
+// - In production (container behind Nginx), we want SAME ORIGIN: "" (empty).
+//   So /auth/login -> http://34.50.117.132/auth/login -> routed to backend.
+// - In local dev, we can talk to backend on localhost:5000 directly.
+const API_BASE =
+  import.meta.env.MODE === "development"
+    ? "http://localhost:5000" // local dev only
+    : ""; // production -> same origin
 
 export async function apiFetch(
   path: string,
-  options: RequestInit = {},
-  useStoredToken = true
+  options: RequestInit = {}
 ) {
-  const token = useStoredToken ? getToken() : undefined;
+  // always send JSON by default unless caller overrides
+  const headers: HeadersInit = {
+    "Content-Type": "application/json",
+    ...(options.headers || {}),
+  };
 
-  const res = await fetch(`${BASE_URL}${path}`, {
+  // Read token from localStorage if available
+  const token = window.localStorage.getItem("p360_token");
+  if (token) {
+    headers["Authorization"] = `Bearer ${token}`;
+  }
+
+  const res = await fetch(`${API_BASE}${path}`, {
     ...options,
-    headers: {
-      "Content-Type": "application/json",
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      ...(options.headers || {}),
-    },
+    headers,
   });
 
-  if (res.status === 401) {
-    // optional auto-logout later; for now just throw
-  }
-
   if (!res.ok) {
-    const text = await res.text().catch(() => "");
-    throw new Error(`API ${res.status} on ${path}: ${text || res.statusText}`);
+    // optionally you can throw something smarter later
+    throw new Error(`Request failed: ${res.status}`);
   }
 
-  // try json, fallback text
-  const ct = res.headers.get("content-type") || "";
-  if (ct.includes("application/json")) return res.json();
-  return (await res.text()) as any;
+  return res.json();
 }
