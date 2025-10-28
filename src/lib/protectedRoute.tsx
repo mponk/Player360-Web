@@ -1,19 +1,27 @@
-import { useAuth } from "./context/AuthContext";
 import { Navigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext"; // <-- ini yang penting
 
-export default function ProtectedRoute({ children }: { children: JSX.Element }) {
+export default function ProtectedRoute({
+  children,
+}: {
+  children: JSX.Element;
+}) {
   const { user, loading } = useAuth();
 
-  // Masih loading state awal (lagi hydrate dari localStorage)
+  // Masih inisialisasi: lagi hydrate dari localStorage.
   if (loading) {
-    return <div className="p-4 text-center text-sm text-gray-500">Loading...</div>;
+    return (
+      <div className="p-4 text-center text-sm text-gray-500">
+        Loading...
+      </div>
+    );
   }
 
-  // Udah selesai loading tapi gak ada user
+  // Udah selesai init, tapi belum login -> tendang ke /login
   if (!user) {
     return <Navigate to="/login" replace />;
   }
 
-  // Udah login
+  // User valid -> boleh masuk
   return children;
 }
