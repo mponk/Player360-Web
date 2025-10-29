@@ -1,5 +1,5 @@
 import { Navigate } from "react-router-dom";
-import { useAuth } from "../context/AuthContext"; // <-- ini yang penting
+import { useAuth } from "../context/AuthContext";
 
 export default function ProtectedRoute({
   children,
@@ -8,7 +8,7 @@ export default function ProtectedRoute({
 }) {
   const { user, loading } = useAuth();
 
-  // Masih inisialisasi: lagi hydrate dari localStorage.
+  // Pas app baru kebangun, kita lagi sync token dari localStorage.
   if (loading) {
     return (
       <div className="p-4 text-center text-sm text-gray-500">
@@ -17,11 +17,11 @@ export default function ProtectedRoute({
     );
   }
 
-  // Udah selesai init, tapi belum login -> tendang ke /login
+  // Kalo udah nggak loading tapi masih ga ada user -> tendang balik login
   if (!user) {
     return <Navigate to="/login" replace />;
   }
 
-  // User valid -> boleh masuk
+  // User valid -> boleh liat halaman yang dilindungi
   return children;
 }
