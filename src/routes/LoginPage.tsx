@@ -10,14 +10,15 @@ export default function LoginPage() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
 
-    // Backend must return:
-    // { token, user: { id, name, role } }
     const data = await apiFetch("/auth/login", {
       method: "POST",
       body: JSON.stringify({ email, password }),
     });
 
+    // data = { token, user: { id, name, role } }
     login(data.token, data.user);
+
+    // setelah nyimpen ke localStorage, pindah ke dashboard
     window.location.href = "/";
   }
 
