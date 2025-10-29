@@ -21,27 +21,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [token, setToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // 1. Hydrate dari localStorage pas app pertama kali mount
+  // Hydrate dari localStorage pas app mount
   useEffect(() => {
     const storedToken = window.localStorage.getItem("p360_token");
     const storedUser = window.localStorage.getItem("p360_user");
 
     if (storedToken && storedUser) {
-      try {
-        const parsedUser = JSON.parse(storedUser) as User;
-        setToken(storedToken);
-        setUser(parsedUser);
-      } catch (err) {
-        console.warn("Failed to parse stored user, clearing it", err);
-        window.localStorage.removeItem("p360_token");
-        window.localStorage.removeItem("p360_user");
-      }
+        try {
+          const parsedUser = JSON.parse(storedUser) as User;
+          setToken(storedToken);
+          setUser(parsedUser);
+        } catch (err) {
+          console.warn("Bad user data in localStorage, clearing.", err);
+          window.localStorage.removeItem("p360_token");
+          window.localStorage.removeItem("p360_user");
+        }
     }
 
     setLoading(false);
   }, []);
 
-  // 2. Fungsi login: simpan ke state + localStorage
   function login(newToken: string, newUser: User) {
     setToken(newToken);
     setUser(newUser);
@@ -49,7 +48,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     window.localStorage.setItem("p360_user", JSON.stringify(newUser));
   }
 
-  // 3. Fungsi logout
   function logout() {
     setToken(null);
     setUser(null);
@@ -72,11 +70,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   );
 }
 
-// Hook nyaman biar komponen lain gampang akses auth
 export function useAuth() {
   const ctx = useContext(AuthContext);
-  if (!ctx) {
-    throw new Error("useAuth must be used inside <AuthProvider>");
-  }
+  if (!ctx) throw new Error("useAuth must be used inside <AuthProvider>");
   return ctx;
 }
