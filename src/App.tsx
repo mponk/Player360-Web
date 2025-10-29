@@ -1,18 +1,21 @@
+// player360-frontend/src/App.tsx
 import { Routes, Route, Navigate } from "react-router-dom";
-import ProtectedRoute from "./lib/protectedRoute";
 import LoginPage from "./routes/LoginPage";
 import DashboardPage from "./routes/DashboardPage";
 import AttendancePage from "./routes/AttendancePage";
 import PerformancePage from "./routes/PerformancePage";
 import RecapPage from "./routes/RecapPage";
-import ParentOverviewPage from "./routes/ParentOverviewPage";
 import WeeklyReviewPage from "./routes/WeeklyReviewPage";
+import ParentOverviewPage from "./routes/ParentOverviewPage";
+import ProtectedRoute from "./lib/protectedRoute";
 
 export default function App() {
   return (
     <Routes>
+      {/* public */}
       <Route path="/login" element={<LoginPage />} />
 
+      {/* coach dashboard */}
       <Route
         path="/"
         element={
@@ -22,6 +25,7 @@ export default function App() {
         }
       />
 
+      {/* attendance screen */}
       <Route
         path="/attendance"
         element={
@@ -31,6 +35,7 @@ export default function App() {
         }
       />
 
+      {/* performance rating screen */}
       <Route
         path="/performance"
         element={
@@ -40,6 +45,7 @@ export default function App() {
         }
       />
 
+      {/* training recap screen */}
       <Route
         path="/recap"
         element={
@@ -49,15 +55,7 @@ export default function App() {
         }
       />
 
-      <Route
-        path="/parent"
-        element={
-          <ProtectedRoute>
-            <ParentOverviewPage />
-          </ProtectedRoute>
-        }
-      />
-
+      {/* weekly analytics screen */}
       <Route
         path="/weekly"
         element={
@@ -67,6 +65,17 @@ export default function App() {
         }
       />
 
+      {/* parent portal */}
+      <Route
+        path="/parent"
+        element={
+          <ProtectedRoute>
+            <ParentOverviewPage />
+          </ProtectedRoute>
+        }
+      />
+
+      {/* catch-all: redirect unknown routes */}
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
