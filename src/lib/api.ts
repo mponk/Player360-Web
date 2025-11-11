@@ -35,4 +35,9 @@ export async function apiFetch(path: string, options: RequestInit = {}) {
   }
 
   return res.json(); // <-- sudah return JSON
+
+    // safe json
+  const ct = res.headers.get("content-type") || "";
+  if (ct.includes("application/json")) return res.json();
+  return {} as any; 
 }
