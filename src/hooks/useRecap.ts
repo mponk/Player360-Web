@@ -1,27 +1,37 @@
+// src/hooks/useRecap.ts
 import { useQuery } from "@tanstack/react-query";
 import { apiFetch } from "../lib/api";
 
-interface RecapData {
+export interface RecapData {
   sessionId: string;
   date: string;
-  highlight: string[];
-  concern: string[];
-  notes: string;
-  detailedRisk: Array<{
-    playerId: string;
-    name: string;
-    issue: string;
-    status: string;
-  }>;
+  attendance?: { present?: number[]; absent?: number[] };
+  ratings?: { number: number; rating: number; notes?: string }[];
+  highlight?: string[];
+  concern?: string[];
+  notes?: string;
 }
 
 export function useRecap(sessionId: string) {
   return useQuery<RecapData>({
     queryKey: ["recap", sessionId],
     queryFn: async () => {
-      const res = await apiFetch(`/sessions/${sessionId}/recap`);
-      if (!res.ok) throw new Error("Failed to fetch recap");
-      return res.json();
-    }
+      // apiFetch sudah BALIK JSON — jangan diperlakukan seperti Response
+      const json = (await apiFetch(`/sessions/${sessionId}/recap`)) as RecapData;
+
+      // normalisasi ringan biar aman
+      return {
+        sessionId: json.sessionId,
+        date: json.date,
+        attendance: {
+          present: json.attendance?.present ?? [],
+          absent: json.attendance?.absent ?? [],
+        },
+        ratings: json.ratings ?? [],
+        highlight: json.highlight ?? [],
+        concern: json.concern ?? [],
+        notes: json.notes ?? "-",
+      };
+    },
   });
 }
