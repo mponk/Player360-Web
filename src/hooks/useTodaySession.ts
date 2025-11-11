@@ -2,37 +2,52 @@
 import { useQuery } from "@tanstack/react-query";
 import { apiFetch } from "../lib/api";
 
-type TodaySession = {
+type DailyPayload = {
+  date?: string;
+  attendance?: string | { text?: string; present?: number; total?: number };
+  focus?: string;
+  notes?: string;
+  risk?: string;
+  avgRating?: number | string | null;
+  // backward compat fields
+  hadir?: string;
+  fokus?: string;
+  catatan?: string;
+  risiko?: string;
+};
+
+type TodayUI = {
   date: string;
-  hadir: string; // e.g. "16 / 18"
+  hadir: string;            // utk kode lama
+  attendanceText: string;   // utk kode baru
   fokus: string;
   catatan: string;
   risiko: string;
+  avgRatingText: string;
 };
 
-// If backend not ready, we fall back to mock to keep UI stable.
-async function fetchTodaySession(): Promise<TodaySession> {
-  try {
-    // expected backend: GET /sessions/daily
-    const data = await apiFetch("/sessions/daily", { method: "GET" });
-    // adapt to expected UI shape; adjust mapping as needed
-    return {
-      date: data.date ?? "",
-      hadir: data.attendance ?? data.hadir ?? "0 / 0",
-      fokus: data.focus ?? data.fokus ?? "-",
-      catatan: data.notes ?? data.catatan ?? "-",
-      risiko: data.risk ?? data.risiko ?? "-",
-    };
-  } catch {
-    // graceful fallback (mock)
-    return {
-      date: "Today",
-      hadir: "0 / 0",
-      fokus: "-",
-      catatan: "-",
-      risiko: "-",
-    };
-  }
+async function fetchTodaySession(): Promise<TodayUI> {
+  const d = (await apiFetch("/sessions/daily")) as DailyPayload;
+
+  const attText =
+    typeof d.attendance === "string"
+      ? d.attendance
+      : d.attendance?.text ?? d.hadir ?? "-";
+
+  const avg =
+    typeof d.avgRating === "number"
+      ? d.avgRating.toFixed(1)
+      : (d.avgRating ?? "-") + "";
+
+  return {
+    date: d.date ?? "Today",
+    hadir: attText || "-",              // alias lama
+    attendanceText: attText || "-",     // alias baru
+    fokus: d.focus ?? d.fokus ?? "-",
+    catatan: d.notes ?? d.catatan ?? "-",
+    risiko: d.risk ?? d.risiko ?? "-",
+    avgRatingText: avg,
+  };
 }
 
 export function useTodaySession() {
